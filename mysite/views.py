@@ -1,8 +1,5 @@
-import time 
+
 from datetime import date
-from types import NoneType
-from typing import ClassVar
-from django import forms
 from django.shortcuts import render,redirect
 from profiles.models import Profile
 from django.contrib.auth.forms import UserCreationForm,AuthenticationForm, UsernameField
