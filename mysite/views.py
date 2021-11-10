@@ -11,6 +11,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import smtplib
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 # Userw = User.objects.all().values()
 # a = Profile.objects.all().values()
 # print(Userw)
@@ -269,9 +271,9 @@ def withdraw(request):
     from_first = earning_from_referral(request)
     from_second = earning_from_referral1(request)
     from_third = earning_from_referral2(request)
-    total = from_ads + from_first + from_second + from_third
+    total = from_ads + from_first + from_second + from_third +1000
     price = use.package_price
-    if use.package_price == 1000 and total > 1000:
+    if use.package_price == 1000 and total >= 1000:
         flag = True
     elif use.package_price == 500 and total >= 500:
         flag = True
@@ -284,37 +286,51 @@ def withdraw(request):
             acc_name = request.POST.get('name')
             acc_no =  request.POST.get('number')
             print(payment_method,acc_name,acc_no)
-            sender_email = 'ali962001@gmail.com'
-            rec_email = 'daniyalaslam54@gmail.com'
-            password = '0312america'
+            # sender_email = 'ali962001@gmail.com'
+            # rec_email = 'daniyalaslam54@gmail.com'
+            # password = '0312america'
             # print(payment_method[1:-2])
             lst = [acc_name,acc_no , payment_method[1:-1] , total,"paisay bhejnay hain"]
-            message = str(lst)
-            server =  smtplib.SMTP('64.233.184.108',587)
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.login(sender_email,password)
-            # print('success')
-            server.sendmail(sender_email,rec_email,message)
-            # print('another success')
-            server.quit()
-            messages.success(request, f"Payment will be sent to {acc_no} of {total}")
-            use.earn_from_ads = 0
-            use.save()
+            # message = str(lst)
+            # server =  smtplib.SMTP('64.233.184.108',587)
+            # server.ehlo()
+            # server.starttls()
+            # server.ehlo()
+            # server.login(sender_email,password)
+            # # print('success')
+            # server.sendmail(sender_email,rec_email,message)
+            # # print('another success')
+            # server.quit()
+            
+            message = Mail(
+                from_email='ali962001@gmail.com',
+                to_emails='daniyalaslam54@gmail.com',
+                subject=str(lst),
+                html_content=str(lst))
+            try:
+                sg = SendGridAPIClient('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')
+                response = sg.send(message)
+                print(response.status_code)
+                print(response.body)
+                print(response.headers)
+                messages.success(request, f"Payment will be sent to {acc_no} of {total}")
+                use.earn_from_ads = 0
+                use.save()
+            except Exception as e:
+                print(e.message)
             # my_recs = use.get_recommened_profiles()
             for i in use.get_recommened_profiles():
                 pr = Profile.objects.get(user= i.user)
                 pr.onee=False
                 print(pr.onee)
                 pr.save()
-            for i in use.get_recommened_profile1():
+            for i in use.get_recommened_profiles1():
                 pr = Profile.objects.get(user= i.user)
                 pr.twoo=False
                 print(pr.onee)
                 pr.save()
 
-            for i in use.get_recommened_profile2():
+            for i in use.get_recommened_profiles2():
                 pr = Profile.objects.get(user= i.user)
                 pr.threee=False
                 print(pr.threee)
